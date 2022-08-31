@@ -56,16 +56,16 @@ class Usuario:
                 return True
         cur.close()
         con.close()
-        return print('Usuário não cadastrado!')
+        return False
 
 class Estoque(Usuario):
 
-    def __init__(self, usuario=Usuario):
-        self.usuario = usuario
+    def __init__(self, nome, senha):
+        super().__init__(nome, senha)
 
-    def entrada_estoque(usuario):
+    def entrada_estoque(self):
 
-        if usuario.login:
+        if Usuario.login(self):
             
             print('Você está na aba de entrada de estoque!\n')
             nome_produto = input('Digite o nome do produto: ')
@@ -89,10 +89,11 @@ class Estoque(Usuario):
             
             if cadastrado:
                 print('Produto já existe!\n')
-                produto_selecionado = cur.execute("SELECT quantidade FROM public.estoque WHERE nome_produto=(%s)", (nome_produto,))
-                print(produto_selecionado)
-                quantidade = input(f'Quantidade atual {produto_selecionado[1]}. Quantidade a ser adicionada: ')
+                cur.execute("SELECT quantidade FROM public.estoque WHERE nome_produto=%s", (nome_produto,))
+                produto_selecionado = cur.fetchone()
+                quantidade = input(f'Quantidade atual {produto_selecionado[0]}. Quantidade a ser adicionada: ')
                 cur.execute("UPDATE public.estoque SET quantidade=quantidade+(%s) WHERE nome_produto=(%s)", (quantidade, nome_produto))
+                print(f"Quantidade agora é {int(produto_selecionado[0])+int(quantidade)}\n")
                 con.commit()
                 cur.close()
                 con.close()
@@ -110,9 +111,39 @@ class Estoque(Usuario):
 
             print('Produto cadastrado com sucesso!\n')
             return print('Tudo certo!')
+        
+        return print('Verifique o usuário e a senha. Ou cadastre-se!')
 
-        return print('Usuario não cadastrado!')
+    def saida_estoque(self):
 
+        if Usuario.login(self):
+            print('Você está na aba de saída estoque!\n')
+            nome_produto = input('Digite o nome do produto: ')
+
+            con = psycopg2.connect(
+                host='localhost',
+                dbname='empire',
+                user='postgres',
+                password='nicolasvx123'
+            )
+
+            cur = con.cursor()
+            cur.execute("SELECT * FROM public.estoque;")
+            produtos = cur.fetchall()
+            cadastrado = False
+
+            for produto in produtos:
+                if produto[1] == nome_produto:
+                    cadastrado = True
+
+            if cadastrado:
+                pass
+
+            a = input('Produto não encontrado no banco de dados, deseja cadastrar? [s/n]')
+            if a == 's':
+                return Estoque.entrada_estoque(self)
+
+        return print('Verifique o usuário e a senha. Ou cadastre-se!')
     
 
 class Vendas(Estoque):

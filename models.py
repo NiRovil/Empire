@@ -1,4 +1,5 @@
 import psycopg2
+import datetime
 
 class Usuario:
 
@@ -7,7 +8,9 @@ class Usuario:
         self._senha = senha
 
         print('\nBem vindo!')
-        print('Primeiramente cadastre-se[1], faça login[2] ou sair[3]!')
+        print('[1] - Cadastre-se')
+        print('[2] - Login.')
+        print('[3] - Sair.')
         resposta = input('--> ')
 
         if resposta == '1':
@@ -74,11 +77,15 @@ class Usuario:
             cur.close()
             con.close()
             print('\nUsuário logado com sucesso!')
-            print('Que função deseja fazer? Controle de estoque[1]')
+            print('Que função deseja fazer?')
+            print('[1] - Controle de estoque.')
+            print('[2] - Vendas.')
             resposta = input('--> ')
 
             if resposta == '1':
                 return Estoque()
+            elif resposta == '2':
+                return Vendas()
 
             print('\nOpção inválida!')
             self.login()
@@ -93,14 +100,17 @@ class Estoque(Usuario):
 
         print('\nVocê está na aba de controle de estoque!')
         print('Qual funcionalidade deseja?')
-        print('Entrada de estoque[1]')
-        print('Saida de estoque[2]')
+        print('[1] - Entrada de estoque.')
+        print('[2] - Saida de estoque.')
+        print('[3] - Sair.')
         resposta = input('--> ')
 
         if resposta == '1':
             self.entrada_estoque()
         elif resposta == '2':
             self.saida_estoque()
+        elif resposta == '3':
+            exit()
         else:
             print('\nOpção inválida!')
             self.__init__()
@@ -128,18 +138,34 @@ class Estoque(Usuario):
                 cadastrado = True
         
         if cadastrado:
-            print('Produto já existe!\n')
-            cur.execute("SELECT quantidade FROM public.estoque WHERE nome_produto=%s", (nome_produto,))
-            produto_selecionado = cur.fetchone()
-            quantidade = input(f'Quantidade atual {produto_selecionado[0]}. Quantidade a ser adicionada: ')
-            cur.execute("UPDATE public.estoque SET quantidade=quantidade+(%s) WHERE nome_produto=(%s)", (quantidade, nome_produto))
-            print(f"Quantidade agora é {int(produto_selecionado[0])+int(quantidade)}\n")
-            con.commit()
-            cur.close()
-            con.close()
-            return print('Quantidade do produto atualizada!')
+            print('\nProduto já existe! Deseja atualizar? [s/n]\n')
+            resposta = input('--> ')
+            if resposta == 's':
+                cur.execute("SELECT quantidade FROM public.estoque WHERE nome_produto=%s", (nome_produto,))
+                produto_selecionado = cur.fetchone()
+                quantidade = input(f'Quantidade atual {produto_selecionado[0]}. Quantidade a ser adicionada: ')
+                cur.execute("UPDATE public.estoque SET quantidade=quantidade+(%s) WHERE nome_produto=(%s)", (quantidade, nome_produto))
+                print(f"Quantidade agora é {int(produto_selecionado[0])+int(quantidade)}\n")
+                con.commit()
+                cur.close()
+                con.close()
+                print('Quantidade do produto atualizada!')
+                return Estoque()
+            
+            elif resposta == 'n':
+                print('Operação cancelada. O que deseja fazer a seguir?\n')
+                print('[1] - Voltar ao menu de estoque.')
+                print('[2] - Sair.')
+                resposta = input('--> ')
+
+                if resposta == '1':
+                    return Estoque()
+                elif resposta == '2':
+                    print('Obrigado por usar o sistema!')
+                    return exit()
 
         print('Produto não encontrado no banco de dados, cadastre!\n')
+
         quantidade = input('Digite a quantidade: ')
         valor_de_compra = input('Digite o valor de compra: ')
         valor_de_venda = input('Digite o valor de venda: ')
@@ -149,8 +175,8 @@ class Estoque(Usuario):
         cur.close()
         con.close()
 
-        print('Produto cadastrado com sucesso!\n')
-        return print('Tudo certo!')
+        print('\nProduto cadastrado com sucesso!\n')
+        return Estoque()
 
     def saida_estoque(self):
 
@@ -192,17 +218,17 @@ class Estoque(Usuario):
 
                 print('Produto deletado com sucesso!')
                 
-                return Estoque.entrada_estoque(self)
+                return Estoque()
 
             elif resposta == 'n':
                 
                 print('Operação cancelada. O que deseja fazer a seguir?\n')
-                print('[1] - Entrada de estoque.')
+                print('[1] - Voltar ao menu de estoque.')
                 print('[2] - Sair.')
                 resposta = input('--> ')
 
                 if resposta == '1':
-                    return Estoque.entrada_estoque(self)
+                    return Estoque()
                 elif resposta == '2':
                     print('Obrigado por usar o sistema!')
                     return exit()
@@ -211,10 +237,33 @@ class Estoque(Usuario):
         if resposta == 's':
             return Estoque.entrada_estoque(self)
         elif resposta == 'n':
-            print('Obrigado por usar o sistema!')
-            return exit()
+            return Estoque()
 
-class Vendas(Estoque):
+class Vendas(Usuario):
+
+    def __init__(self):
+        print('\nVocê está na aba de vendas!')
+        self.venda_produto()
+
+    def venda_produto(self):
+
+        con = psycopg2.connect(
+            host='localhost',
+            dbname='empire',
+            user='postgres',
+            password='nicolasvx123'
+        )
+
+        cur = con.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS public.vendas (id serial PRIMARY KEY, nome_produto varchar(50), valor_venda integer, receita integer, dia_venda date)")
+        cur.execute("SELECT * FROM public.estoque;")
+        produtos = cur.fetchall()
+        print("Que produto deseja vender?")
+
+        for produto in produtos:
+            print(f'[{produto[0]}] - {produto[1]} ')
+
+        
 
     ## variaveis
     #

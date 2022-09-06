@@ -6,13 +6,14 @@ class Usuario:
     def __init__(self, nome, senha):
         self._nome = nome 
         self._senha = senha
-
         
+        self.menu_inicial()
 
     def menu_inicial(self):
 
         print('\nBem vindo!')
-        print('[1] - Cadastre-se')
+        print('Selecione uma das opções a seguir:\n')
+        print('[1] - Cadastrar-se')
         print('[2] - Login.')
         print('[3] - Sair.')
         resposta = input('--> ')
@@ -24,28 +25,27 @@ class Usuario:
         elif resposta == '3':
             print('\nVolte sempre!\n')
             exit()
-        else:
-            print('Opção inválida!')
-            self.__init__(self._nome, self._senha)
-        
-    def menu_cadastro(self):
-        pass
 
+        print('\nOpção inválida!')
+        self.menu_inicial()
+    
     def menu_login(self):
 
-        print('Que função deseja fazer?')
+        print('Que função deseja fazer?\n')
         print('[1] - Controle de estoque.')
         print('[2] - Vendas.')
-
+        print('[3] - Sair.')
+        
         resposta = input('--> ')
 
         if resposta == '1':
             return Estoque()
         elif resposta == '2':
-            return Vendas(self._nome, self._senha)
+            return Vendas()
+        elif resposta == '3':
+            exit()
 
         print('\nOpção inválida!')
-        pass
 
     def cadastro(self):
 
@@ -66,22 +66,23 @@ class Usuario:
             if self._nome == user[1]:
                 cadastrado = True
             
-        if cadastrado:
+        while cadastrado:
+
             print('\nUsuário já existe! Deseja fazer o login? [s/n]')
             resposta = input('--> ')
             if resposta == 's':
                 self.login()
             elif resposta == 'n':
-                exit()
+                self.menu_inicial()
             print('\nOpção inválida!')
-            return self.cadastro()
 
         cur.execute("INSERT INTO public.usuario (nome,senha) VALUES (%s, %s)", (self._nome, self._senha))
         con.commit()        
         cur.close()
         con.close()
 
-        return('Usuário cadastrado com sucesso!')
+        print('\nUsuário cadastrado com sucesso!')
+        return self.menu_inicial()
 
     def login(self):
 
@@ -104,7 +105,8 @@ class Usuario:
 
         cur.close()
         con.close()
-        return False
+        print('\nUsuário não encontrado, verifique o usuário e senha ou cadastre-se.')
+        self.menu_inicial()
 
 class Estoque(Usuario):
 
@@ -253,14 +255,13 @@ class Estoque(Usuario):
 
 class Vendas(Usuario):
 
-    def __init__(self, nome, senha):
-        self._nome = nome
-        self._senha = senha
+    def __init__(self):
+
         print('\nVocê está na aba de vendas!')
         self.venda_produto()
-
+        
     def venda_produto(self):
-
+        print("teste")
         con = psycopg2.connect(
             host='localhost',
             dbname='empire',
@@ -272,7 +273,8 @@ class Vendas(Usuario):
         cur.execute("CREATE TABLE IF NOT EXISTS public.vendas (id serial PRIMARY KEY, nome_produto varchar(50), valor_venda integer, receita integer, data_venda date)")
         cur.execute("SELECT * FROM public.estoque;")
         produtos = cur.fetchall()
-        print('Quais produtos deseja vender? Precione \'c\' para finalizar.')
+
+        print('Quais produtos deseja vender? Precione \'c\' para finalizar a seleção.')
 
         for produto in produtos:
             if produto != None:
@@ -281,8 +283,8 @@ class Vendas(Usuario):
         respostas = []
         
         while True:
-            resposta = input('--> ')
 
+            resposta = input('--> ')
             if resposta == 'c':
                 if respostas:
                     for item in respostas:                     
@@ -293,30 +295,24 @@ class Vendas(Usuario):
                                     cur.execute("UPDATE public.estoque SET quantidade=quantidade-(%s) WHERE id=(%s)", (quantidade, item))
                                     cur.execute("INSERT INTO public.vendas (nome_produto, valor_venda, receita, data_venda) VALUES (%s, %s, %s, %s)", (produto[1], produto[4], produto[3]-produto[4], datetime))
                                     print('Produto vendido com sucesso')
-                                    print('\nRedirecionando...')
-                                    self.login()
-                                    break
-                else:
-            
-                    print('Nenhum item selecionado!')
-                    print('O que deseja fazer a seguir?\n')
-                    print('[1] - Voltar ao menu principal.')
-                    print('[2] - Sair.')
-                    
-                    while True:
-                        resposta = input('--> ')
-                        if resposta == '1':
-                            self.login()
-                        elif resposta == '2':
-                            exit()
-                        else:
-                            print('Resposta inválida')
-                            return True
+
+                print('Nenhum item selecionado!')
+                print('O que deseja fazer a seguir?\n')
+                print('[1] - Voltar ao menu.')
+                print('[2] - Sair.')
+                
+                while True:
+                    resposta = input('--> ')
+                    if resposta == '1':
+                        self.menu_login()
+                    elif resposta == '2':
+                        exit()
+                    print('Resposta inválida')
                         
             elif resposta != range(produto[0]):
                 print('Produto não existe!')
-            else:
-                respostas.append(resposta)
+
+            respostas.append(resposta)
         
     ## variaveis
     #

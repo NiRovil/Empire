@@ -7,6 +7,10 @@ class Usuario:
         self._nome = nome 
         self._senha = senha
 
+        
+
+    def menu_inicial(self):
+
         print('\nBem vindo!')
         print('[1] - Cadastre-se')
         print('[2] - Login.')
@@ -23,6 +27,25 @@ class Usuario:
         else:
             print('Opção inválida!')
             self.__init__(self._nome, self._senha)
+        
+    def menu_cadastro(self):
+        pass
+
+    def menu_login(self):
+
+        print('Que função deseja fazer?')
+        print('[1] - Controle de estoque.')
+        print('[2] - Vendas.')
+
+        resposta = input('--> ')
+
+        if resposta == '1':
+            return Estoque()
+        elif resposta == '2':
+            return Vendas(self._nome, self._senha)
+
+        print('\nOpção inválida!')
+        pass
 
     def cadastro(self):
 
@@ -77,18 +100,7 @@ class Usuario:
             cur.close()
             con.close()
             print('\nUsuário logado com sucesso!')
-            print('Que função deseja fazer?')
-            print('[1] - Controle de estoque.')
-            print('[2] - Vendas.')
-            resposta = input('--> ')
-
-            if resposta == '1':
-                return Estoque()
-            elif resposta == '2':
-                return Vendas()
-
-            print('\nOpção inválida!')
-            self.login()
+            self.menu_login()
 
         cur.close()
         con.close()
@@ -241,7 +253,9 @@ class Estoque(Usuario):
 
 class Vendas(Usuario):
 
-    def __init__(self):
+    def __init__(self, nome, senha):
+        self._nome = nome
+        self._senha = senha
         print('\nVocê está na aba de vendas!')
         self.venda_produto()
 
@@ -255,16 +269,55 @@ class Vendas(Usuario):
         )
 
         cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS public.vendas (id serial PRIMARY KEY, nome_produto varchar(50), valor_venda integer, receita integer, dia_venda date)")
+        cur.execute("CREATE TABLE IF NOT EXISTS public.vendas (id serial PRIMARY KEY, nome_produto varchar(50), valor_venda integer, receita integer, data_venda date)")
         cur.execute("SELECT * FROM public.estoque;")
         produtos = cur.fetchall()
-        print("Que produto deseja vender?")
+        print('Quais produtos deseja vender? Precione \'c\' para finalizar.')
 
         for produto in produtos:
-            print(f'[{produto[0]}] - {produto[1]} ')
+            if produto != None:
+                print(f'[{produto[0]}] - {produto[1]}')
 
+        respostas = []
         
+        while True:
+            resposta = input('--> ')
 
+            if resposta == 'c':
+                if respostas:
+                    for item in respostas:                     
+                        for produto in produtos:
+                                if item == produto[0]:
+                                    
+                                    quantidade = input(f'Selecione a quantidade de {item} a ser vendida: ')
+                                    cur.execute("UPDATE public.estoque SET quantidade=quantidade-(%s) WHERE id=(%s)", (quantidade, item))
+                                    cur.execute("INSERT INTO public.vendas (nome_produto, valor_venda, receita, data_venda) VALUES (%s, %s, %s, %s)", (produto[1], produto[4], produto[3]-produto[4], datetime))
+                                    print('Produto vendido com sucesso')
+                                    print('\nRedirecionando...')
+                                    self.login()
+                                    break
+                else:
+            
+                    print('Nenhum item selecionado!')
+                    print('O que deseja fazer a seguir?\n')
+                    print('[1] - Voltar ao menu principal.')
+                    print('[2] - Sair.')
+                    
+                    while True:
+                        resposta = input('--> ')
+                        if resposta == '1':
+                            self.login()
+                        elif resposta == '2':
+                            exit()
+                        else:
+                            print('Resposta inválida')
+                            return True
+                        
+            elif resposta != range(produto[0]):
+                print('Produto não existe!')
+            else:
+                respostas.append(resposta)
+        
     ## variaveis
     #
 
@@ -272,7 +325,6 @@ class Vendas(Usuario):
     # quantidade vendida
     # valor vendido
     # totais mensais/anuais
-    pass
 
 class Despesas(Estoque):
 

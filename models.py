@@ -261,7 +261,7 @@ class Vendas(Usuario):
         self.venda_produto()
         
     def venda_produto(self):
-        print("teste")
+
         con = psycopg2.connect(
             host='localhost',
             dbname='empire',
@@ -274,7 +274,7 @@ class Vendas(Usuario):
         cur.execute("SELECT * FROM public.estoque;")
         produtos = cur.fetchall()
 
-        print('Quais produtos deseja vender? Precione \'c\' para finalizar a seleção.')
+        print('Quais produtos deseja vender? Precione \'0\' para finalizar a seleção.')
 
         for produto in produtos:
             if produto != None:
@@ -285,21 +285,28 @@ class Vendas(Usuario):
         while True:
 
             resposta = input('--> ')
-            if resposta == 'c':
+            if resposta == '0':
                 if respostas:
                     for item in respostas:                     
                         for produto in produtos:
-                                if item == produto[0]:
-                                    
-                                    quantidade = input(f'Selecione a quantidade de {item} a ser vendida: ')
-                                    cur.execute("UPDATE public.estoque SET quantidade=quantidade-(%s) WHERE id=(%s)", (quantidade, item))
-                                    cur.execute("INSERT INTO public.vendas (nome_produto, valor_venda, receita, data_venda) VALUES (%s, %s, %s, %s)", (produto[1], produto[4], produto[3]-produto[4], datetime))
-                                    print('Produto vendido com sucesso')
+                            if item == produto[0]:
+                                
+                                quantidade = input(f'Selecione a quantidade de {item} a ser vendida: ')
+                                cur.execute("UPDATE public.estoque SET quantidade=quantidade-(%s) WHERE id=(%s)", (quantidade, item))
+                                cur.execute("INSERT INTO public.vendas (nome_produto, valor_venda, receita, data_venda) VALUES (%s, %s, %s, %s)", (produto[1], produto[4], produto[3]-produto[4], datetime))
+                                con.commit()
+                                cur.close()
+                                con.close()
+                                print('Produto vendido com sucesso')
 
                 print('Nenhum item selecionado!')
                 print('O que deseja fazer a seguir?\n')
                 print('[1] - Voltar ao menu.')
                 print('[2] - Sair.')
+                
+                con.commit()
+                cur.close()
+                con.close()
                 
                 while True:
                     resposta = input('--> ')
@@ -309,10 +316,15 @@ class Vendas(Usuario):
                         exit()
                     print('Resposta inválida')
                         
-            elif resposta != range(produto[0]):
+            if resposta not in str(produto[0]):
                 print('Produto não existe!')
 
+            if resposta in respostas:
+                print('Produto já adicionado a lista. Tente outro item ou finalize a operação!')
+            
+            print(respostas)
             respostas.append(resposta)
+            
         
     ## variaveis
     #

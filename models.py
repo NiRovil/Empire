@@ -4,6 +4,7 @@ from datetime import datetime
 class Usuario:
 
     def __init__(self, nome, senha):
+
         self._nome = nome 
         self._senha = senha
         
@@ -16,36 +17,48 @@ class Usuario:
         print('[1] - Cadastrar-se')
         print('[2] - Login.')
         print('[3] - Sair.')
-        resposta = input('--> ')
+        
+        while True:
 
-        if resposta == '1':
-            self.cadastro()
-        elif resposta == '2':
-            self.login()
-        elif resposta == '3':
-            print('\nVolte sempre!\n')
-            exit()
-
-        print('\nOpção inválida!')
-        self.menu_inicial()
+            resposta = input('--> ')
+            if resposta == '1':
+                self.cadastro()
+            elif resposta == '2':
+                self.login()
+            elif resposta == '3':
+                print('\nVolte sempre!\n')
+                exit()
+            print('\nOpção inválida!')
     
     def menu_login(self):
 
         print('Que função deseja fazer?\n')
         print('[1] - Controle de estoque.')
         print('[2] - Vendas.')
-        print('[3] - Sair.')
+        print('[3] - Despesas.')
+        print('[4] - Fornecedores.')
+        print('[5] - Sair.')
         
-        resposta = input('--> ')
-
-        if resposta == '1':
-            return Estoque()
-        elif resposta == '2':
-            return Vendas()
-        elif resposta == '3':
-            exit()
-
-        print('\nOpção inválida!')
+        while True:
+            
+            resposta = input('--> ')
+            if resposta == '1':
+                return Estoque()
+            if resposta == '2':
+                return Vendas()
+            if resposta == '3':
+                return Despesas()
+            if resposta == '4':
+                print('\nVocê está na aba de cadastro de Fornecedor')
+                print('Para começar precisamos de algumas informações sobre o fornecedor:\n')
+                nome = input('Nome: ')
+                numero = input('Numero de telefone: ')
+                cnpj = input('CNPJ: ')
+                cep = input('CEP: ')
+                return Fornecedor(nome, numero, cnpj, cep)
+            if resposta == '5':
+                exit()
+            print('\nOpção inválida!')
 
     def cadastro(self):
 
@@ -101,7 +114,7 @@ class Usuario:
             cur.close()
             con.close()
             print('\nUsuário logado com sucesso!')
-            self.menu_login()
+            return self.menu_login()
 
         cur.close()
         con.close()
@@ -261,9 +274,9 @@ class Vendas(Usuario):
     def __init__(self):
 
         print('\nVocê está na aba de vendas!')
-        self.venda_produto()
+        self.venda()
         
-    def venda_produto(self):
+    def venda(self):
 
         con = psycopg2.connect(
             host='localhost',
@@ -283,8 +296,7 @@ class Vendas(Usuario):
             print('Quais produtos deseja vender? Precione \'c\' para finalizar a seleção.')
 
             for produto in produtos:
-                if produto != None:
-                    print(f'[{produto[0]}] - {produto[1]}')
+                print(f'[{produto[0]}] - {produto[1]}')
 
 
             while True:
@@ -300,7 +312,7 @@ class Vendas(Usuario):
 
                 if resposta not in str(item):
                     print('Produto não existe!')
-                    return self.venda_produto()
+                    return self.venda()
                 
                 respostas.append(resposta)
         
@@ -354,38 +366,52 @@ class Vendas(Usuario):
             elif resposta == '2':
                 exit()
             print('Resposta inválida')
-    
-    ## variaveis
-    #
 
-    ## funcoes
-    # quantidade vendida
-    # valor vendido
-    # totais mensais/anuais
+class Despesas(Usuario):
 
-class Despesas(Estoque):
+    def __init__(self):
 
-    # subclasse de estoque, assim como vendas
+        print('\nVocê está na aba de despesas.\n')
+        self.despesa()       
+
+    def despesa(self):
+        exit()
 
     ## funcoes
     # despesas gerais
     # despesas com produtos
     # totais mensais/anuais
-    pass 
 
 class Fornecedor(Usuario):
 
-    # responde a classe de usuários
+    def __init__(self, nome, numero, cnpj, cep):
+        
+        if self.valida_nome(nome):
+            self.nome = nome
+        else:
+            raise ValueError('Nome inválido!')
 
+        #if self.valida_numero(numero):
+        #    self.numero = numero
+        #else:
+        #    raise ValueError('Numero inválido!')
+        self.numero = numero
+        self.cnpj = cnpj
+        self.endereco = cep
+
+    def valida_nome(self, nome):
+        
+        print(nome)
+
+        return True
+            
     ## variaveis
     # nome
     # numero
     # cnpj
     # endereço
-    # contato principal
 
     ## funcoes
     # cria fornecedores
     # deleta fornecedores
     # atualiza fornecedores
-    pass

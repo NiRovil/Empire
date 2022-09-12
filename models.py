@@ -415,17 +415,15 @@ class Fornecedor(Usuario):
             raise ValueError('CEP inválido!')
 
     def valida_nome(self, nome):
-        
-        if nome == '' or nome == None:
-            return False
-        if nome.isdigit():
-            return False
 
-        return True
+        if re.match(r'[a-zA-Z ]+$', nome):
+            return True
+
+        return False
     
     def valida_numero(self, numero):
 
-        numero_valido = "([0-9]{2})([0-9]{4,5})([0-9]{4})"
+        numero_valido = "([0-9]{2})([0-9]{5})([0-9]{4})"
         numero_validado = re.findall(numero_valido, numero)
 
         if numero_validado:
@@ -435,7 +433,7 @@ class Fornecedor(Usuario):
 
     def format_numero(self):
 
-        numero_valido = "([0-9]{2})([0-9]{4,5})([0-9]{4})"
+        numero_valido = "([0-9]{2})([0-9]{5})([0-9]{4})"
         numero = re.search(numero_valido, self.numero)
         numero_formatado = f"({numero.group(1)}){numero.group(2)}-{numero.group(3)}"
         print('Confirma o numero a seguir? [s/n]')

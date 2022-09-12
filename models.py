@@ -1,5 +1,9 @@
+import re
 import psycopg2
+import requests
+
 from datetime import datetime
+from validate_docbr import CNPJ
 
 class Usuario:
 
@@ -391,20 +395,94 @@ class Fornecedor(Usuario):
         else:
             raise ValueError('Nome inválido!')
 
-        #if self.valida_numero(numero):
-        #    self.numero = numero
-        #else:
-        #    raise ValueError('Numero inválido!')
-        self.numero = numero
-        self.cnpj = cnpj
-        self.endereco = cep
+        if self.valida_numero(numero):
+            self.numero = numero
+
+        else:
+            raise ValueError('Numero inválido!')
+
+        if self.valida_cnpj(cnpj):
+            self.cnpj = cnpj
+            self.format_cnpj()
+        else:
+            raise ValueError('CNPJ inválido!')
+
+        if self.valida_cep(cep):
+            self.cep = cep
+            self.format_cep()
+            self.via_cep()
+        else:
+            raise ValueError('CEP inválido!')
 
     def valida_nome(self, nome):
         
-        print(nome)
+        if nome == '' or nome == None:
+            return False
+        if nome.isdigit():
+            return False
 
         return True
-            
+    
+    def valida_numero(self, numero):
+
+        numero_valido = "([0-9]{2})([0-9]{4,5})([0-9]{4})"
+        numero_validado = re.findall(numero_valido, numero)
+
+        if numero_validado:
+            return True
+        
+        return False
+
+    def format_numero(self):
+
+        numero_valido = "([0-9]{2})([0-9]{4,5})([0-9]{4})"
+        numero = re.search(numero_valido, self.numero)
+        numero_formatado = f"({numero.group(1)}){numero.group(2)}-{numero.group(3)}"
+        print('Confirma o numero a seguir? [s/n]')
+        print(numero_formatado)
+        resposta = input('--> ')
+
+        if resposta == 's':
+            return True
+        if resposta == 'n':
+            return False
+    
+    def valida_cnpj(self, cnpj):
+        
+        documento = CNPJ()
+        return documento.validate(cnpj)
+
+    def format_cnpj(self):
+
+        documento = CNPJ()
+        return documento.mask(self.cnpj)
+
+    def valida_cep(self, cep):
+
+        if len(cep) == 8:
+            return True
+        
+        return False
+
+    def format_cep(self):
+
+        print('Confirma o seu cep? [s/n]')
+        print(f'{self.cep[:5]}-{self.cep[5:]}')
+        return True
+
+    def via_cep(self):
+
+        r = requests.get(f'https://viacep.com.br/ws/{self.cep}/json/')
+        dados = r.json()
+
+        print(dados['cep'] + ', ' + dados['bairro'])
+
+        exit()
+
+
+
+
+
     ## variaveis
     # nome
     # numero

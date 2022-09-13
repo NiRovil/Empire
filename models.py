@@ -477,10 +477,6 @@ class Fornecedor(Usuario):
 
         exit()
 
-
-
-
-
     ## variaveis
     # nome
     # numero

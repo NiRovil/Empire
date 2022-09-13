@@ -1,5 +1,5 @@
 import unittest
-from models import Fornecedor
+from fornecedor import Fornecedor
 
 # 'Nicolas', 41999999999, 49810576000103, 69903239
 

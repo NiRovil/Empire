@@ -1,6 +1,8 @@
 import psycopg2
 
-class Estoque():
+from usuario import Usuario
+
+class Estoque(Usuario):
 
     def __init__(self):
 

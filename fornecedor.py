@@ -3,8 +3,9 @@ import requests
 import psycopg2
 
 from validate_docbr import CNPJ
+from usuario import Usuario
 
-class Fornecedor():
+class Fornecedor(Usuario):
 
     def __init__(self, nome, numero, cnpj, cep):
         
@@ -12,9 +13,11 @@ class Fornecedor():
             self.nome = nome
 
         else:
-            print('\nNome inválido!')
-            print('Siga o exemplo a seguir: \'Empire Distribuidora\'')
-            print('Nomes como \'Emp1re\\Emp!re\' ou vazios, não são válidos!')
+            print(
+                '\nNome inválido!'
+                '\nSiga o exemplo a seguir: \'Empire Distribuidora\'\n'
+                '\nNomes como \'Emp1re\\Emp!re\' ou vazios, não são válidos!\n'
+            )
 
             while True:
                 print('\nDigite o nome novamente! Ou volte ao menu principal precionando a tecla \'0\'.')
@@ -31,9 +34,11 @@ class Fornecedor():
             self.numero = numero
 
         else:
-            print('\nNumero inválido!')
-            print('O numero deve conter 11 dígitos, sendo composto pelo ddd e os 10 numeros restantes.')
-            print('Numero incompleto ou com letras não é válido.')
+            print(
+                '\nNumero inválido!'
+                '\nO numero deve conter 11 dígitos, sendo composto pelo ddd e os 10 numeros restantes.'
+                '\nNumero incompleto ou com letras não é válido.\n'
+            )
 
             while True:
                 print('\nDigite o numero novamente! Ou volte ao menu principal precionando a tecla \'0\'.')
@@ -51,9 +56,11 @@ class Fornecedor():
             self.format_cnpj()
 
         else:
-            print('\nCNPJ inválido!')
-            print('O CNPJ deve conter 14 dígitos e ser existente.')
-            print('CNPJ incompleto ou com letras não é válido.')
+            print(
+                '\nCNPJ inválido!'
+                '\nO CNPJ deve conter 14 dígitos e ser existente.'
+                '\nCNPJ incompleto ou com letras não é válido.\n'
+            )
 
             while True:
                 print('\nDigite o CNPJ novamente! Ou volte ao menu principal precionando a tecla \'0\'.')
@@ -160,22 +167,20 @@ class Fornecedor():
 
         while cadastrado:
 
-            print('Fornecedor já cadastrado! O que deseja fazer a seguir?')
-            exit()
+            print(
+                '\nFornecedor já cadastrado! O que deseja fazer a seguir?\n'
+                '\n[1] - Atualizar cadastro.'
+                '\n[2] - Deletar cadastro.'
+                '\n[3] - Voltar ao menu principal.'
+                '\n[4] - Sair.\n'
+            )
 
             # arrumar essa parte depois
 
         cur.execute("INSERT INTO public.fornecedor (nome, numero, cnpj, cep, uf, logradouro, complemento, bairro, localidade) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.nome, self.numero, self.cnpj, self.cep, self.uf, self.logradouro, self.complemento, self.bairro, self.localdade))
         
+    def deleta_fornecedor(self):
+        pass
 
-
-    ## variaveis
-    # nome
-    # numero
-    # cnpj
-    # endereço
-
-    ## funcoes
-    # cria fornecedores
-    # deleta fornecedores
-    # atualiza fornecedores
+    def atualiza_fornecedor(self):
+        pass

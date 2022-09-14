@@ -1,8 +1,9 @@
 import psycopg2
 
 from datetime import datetime
+from usuario import Usuario
 
-class Vendas():
+class Vendas(Usuario):
 
     def __init__(self):
 

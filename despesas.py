@@ -1,4 +1,6 @@
-class Despesas():
+from usuario import Usuario
+
+class Despesas(Usuario):
 
     def __init__(self):
 

@@ -6,7 +6,7 @@ class Usuario:
 
         self._nome = nome 
         self._senha = senha
-        
+
         self.menu_inicial()
 
     def menu_inicial(self):
@@ -20,19 +20,22 @@ class Usuario:
         )
 
         while True:
-
             resposta = input('--> ')
+
             if resposta == '1':
                 return self.cadastro()
+
             elif resposta == '2':
                 return self.login()
+
             elif resposta == '3':
                 print('\nVolte sempre!\n')
                 return exit()
+
             print('\nOpção inválida!\n')
 
     def menu_login(self):
-        
+
         print(
             '\nQue função deseja fazer?\n'
             '\n[1] - Controle de estoque.'
@@ -41,33 +44,46 @@ class Usuario:
             '\n[4] - Fornecedores.'
             '\n[5] - Sair.\n'
         )
-        
+
         while True:
-            
             resposta = input('--> ')
+
             if resposta == '1':
                 from estoque import Estoque
                 return Estoque()
+
             if resposta == '2':
                 from vendas import Vendas
                 return Vendas()
+
             if resposta == '3':
                 from despesas import Despesas
                 return Despesas()
-            if resposta == '4':
-                from fornecedor import Fornecedor
-                print(
-                    '\nVocê está na aba de cadastro de Fornecedor'
-                    '\nPara começar precisamos de algumas informações sobre o fornecedor:\n'
-                )
 
-                nome = input('Nome: ')
-                numero = input('Numero de telefone: ')
-                cnpj = input('CNPJ: ')
-                cep = input('CEP: ')
-                return Fornecedor(nome, numero, cnpj, cep)
+            if resposta == '4':
+                
+                while True:
+                    print('Deseja cadastrar/atualizar/deletar fornecedor? [s/n]')
+                    r = input('--> ')
+
+                    if r == 's':
+                        from fornecedor import CadastroFornecedor
+                        print(
+                            '\nVocê está na aba de cadastro de Fornecedor'
+                            '\nPara começar digite o CNPJ:\n'
+                        )
+
+                        cnpj = input('CNPJ: ')
+
+                        return CadastroFornecedor(cnpj)
+
+                    if r == 'n':
+                        from fornecedor import ListaFornecedor
+                        return ListaFornecedor()
+
             if resposta == '5':
                 return exit()
+
             print('\nOpção inválida!\n')
 
     def cadastro(self):

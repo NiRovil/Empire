@@ -5,10 +5,70 @@ import psycopg2
 from validate_docbr import CNPJ
 from usuario import Usuario
 
-class Fornecedor(Usuario):
+class CadastroFornecedor(Usuario):
 
-    def __init__(self, nome, numero, cnpj, cep):
-        
+    def __init__(self, cnpj):
+
+        nome = ''
+        numero = ''
+        cep = ''
+
+        if self.valida_cnpj(cnpj):
+            self.cnpj = cnpj
+
+            con = psycopg2.connect(
+                host='localhost',
+                dbname='empire',
+                user='postgres',
+                password='nicolasvx123'
+            )
+
+            cur = con.cursor()
+            cur.execute("SELECT * FROM public.fornecedor WHERE cnpj=%s;", (self.cnpj,))
+            fornecedor = cur.fetchone()
+
+            if fornecedor != None and fornecedor[3] == self.cnpj:
+                cadastro = [item for item in fornecedor]
+                
+                while True:
+                    print('Fornecedor já cadastrado, deseja \n[1] - Atualizar.\n[2] - Deletar.\n[3] - Voltar ao menu.')
+                    resposta = input('--> ')
+
+                    if resposta == '1':
+                        return self.atualiza_fornecedor(cadastro)
+
+                    if resposta == '2':
+                        return self.deleta_fornecedor(cadastro)
+
+                    if resposta == '3':
+                        return self.menu_login()
+
+                    print('Opção inválida!')
+
+            print('\nFornecedor não encontrado, informe os itens a seguir: ')
+            
+            nome = input('Nome: ')
+            numero = input('Numero: ')
+            cep = input('CEP: ')
+
+        else:
+            print(
+                '\nCNPJ inválido!'
+                '\nO CNPJ deve conter 14 dígitos e ser existente.'
+                '\nCNPJ incompleto ou com letras não é válido.\n'
+            )
+
+            while True:
+                print('\nDigite o CNPJ novamente! Ou volte ao menu principal precionando a tecla \'0\'.')
+                resposta = input('--> ')
+
+                if resposta == '0':
+                    self.menu_login()
+
+                if self.valida_cnpj(resposta):
+                    self.cnpj = resposta
+                    break
+
         if self.valida_nome(nome):
             self.nome = nome
 
@@ -51,27 +111,6 @@ class Fornecedor(Usuario):
                     self.numero = resposta
                     break
 
-        if self.valida_cnpj(cnpj):
-            self.cnpj = cnpj
-
-        else:
-            print(
-                '\nCNPJ inválido!'
-                '\nO CNPJ deve conter 14 dígitos e ser existente.'
-                '\nCNPJ incompleto ou com letras não é válido.\n'
-            )
-
-            while True:
-                print('\nDigite o CNPJ novamente! Ou volte ao menu principal precionando a tecla \'0\'.')
-                resposta = input('--> ')
-
-                if resposta == '0':
-                    self.menu_login()
-
-                if self.valida_cnpj(resposta):
-                    self.cnpj = resposta
-                    break
-
         if self.valida_cep(cep):
             self.cep = cep
             self.dados = self.via_cep()
@@ -95,6 +134,16 @@ class Fornecedor(Usuario):
                     break      
 
         self.confirma()
+
+    def valida_cnpj(self, cnpj):
+        
+        documento = CNPJ()
+        return documento.validate(cnpj)
+
+    def format_cnpj(self):
+
+        documento = CNPJ()
+        return documento.mask(self.cnpj)
 
     def valida_nome(self, nome):
 
@@ -120,16 +169,6 @@ class Fornecedor(Usuario):
         numero_formatado = f"({numero.group(1)}){numero.group(2)}-{numero.group(3)}"
 
         return numero_formatado
-    
-    def valida_cnpj(self, cnpj):
-        
-        documento = CNPJ()
-        return documento.validate(cnpj)
-
-    def format_cnpj(self):
-
-        documento = CNPJ()
-        return documento.mask(self.cnpj)
 
     def valida_cep(self, cep):
 
@@ -173,6 +212,7 @@ class Fornecedor(Usuario):
                     f'\n[2] - Numero. Atual {self.format_numero()}.'
                     f'\n[3] - CNPJ. Atual {self.format_cnpj()}.'
                     f'\n[4] - CEP. Atual {self.format_cep()}.'
+                    '\nOu se preferir:\n'
                     '\n[5] - Voltar ao menu.'
                     '\n[6] - Continuar.'
                 )
@@ -246,31 +286,125 @@ class Fornecedor(Usuario):
         )
 
         cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS public.fornecedor (id serial PRIMARY KEY, nome varchar(50), numero varchar(11), cnpj varchar(14), cep varchar(8), uf varchar(2), logradouro varchar(50), complemento varchar(50), bairro varchar(50), localidade varchar(50))")
+        cur.execute("CREATE TABLE IF NOT EXISTS public.fornecedor (id serial PRIMARY KEY, nome varchar(50), numero varchar(11), cnpj varchar(14), cep varchar(8), uf varchar(2), logradouro varchar(50), bairro varchar(50), localidade varchar(50))")
+        cur.execute("INSERT INTO public.fornecedor (nome, numero, cnpj, cep, uf, logradouro, bairro, localidade) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (self.nome, self.numero, self.cnpj, self.cep, self.dados['uf'], self.dados['logradouro'], self.dados['bairro'], self.dados['localidade']))
+        con.commit()
+        cur.close()
+        con.close()
+
+        print('Fornecedor cadastrado com sucesso!')
+        return self.menu_login()
+
+    def deleta_fornecedor(self, cadastro):
+        
+        con = psycopg2.connect(
+            host='localhost',
+            dbname='empire',
+            user='postgres',
+            password='nicolasvx123'
+        )
+
+        cur = con.cursor()
+
+        cur.execute("DELETE * FROM public.fornecedor WHERE id = %s", (cadastro[0]))
+
+        con.commit()
+        cur.close()
+        con.close()
+
+        print('Fornecedor deletado com sucesso!')
+
+        return self.menu_login()
+
+    def atualiza_fornecedor(self, cadastro):
+
+        con = psycopg2.connect(
+            host='localhost',
+            dbname='empire',
+            user='postgres',
+            password='nicolasvx123'
+        )
+
+        cur = con.cursor()
+
+        cur.execute("SELECT * FROM public.fornecedor WHERE id = %s;", (cadastro[0],))
+
+        print(
+            '\nO que deseja atualizar?'
+            f'\n[1] - Nome. (Nome atual = {cadastro[1]})'
+            f'\n[2] - Endereço. (Endereço atual: {cadastro[6]}, {cadastro[7]} - {cadastro[8]}, {cadastro[5]})'
+            '\nOu se preferir:'
+            '\n[3] - Deletar fornecedor.'
+            '\n[4] - Voltar ao menu.'
+            '\n[5] - Sair.'
+        )
+
+        while True:
+            resposta = input('--> ')
+
+            if resposta == '1':
+                r = input('Digite o novo nome: ')
+                cur.execute("UPDATE public.fornecedor SET nome=(%s) WHERE id=(%s);", (r ,cadastro[0]))
+                break
+
+            if resposta == '2':
+
+                while True:
+                    cep = input('Digite o cep: ')
+
+                    if self.valida_cep(cep):
+                        self.cep = cep
+                        self.dados = self.via_cep()
+                        
+                        cur.execute("UPDATE public.fornecedor SET logradouro=(%s), bairro=(%s), localidade=(%s), uf=(%s)", (self.dados['logradouro'], self.dados['bairro'], self.dados['localidade'], self.dados['uf']))
+                        break
+
+                    print('CEP inválido!')
+                
+            if resposta == '3':
+                return self.deleta_fornecedor(cadastro)
+            
+            if resposta == '4':
+                return self.menu_login()
+
+            if resposta == '5':
+                exit()
+    
+            print('Opção inválida!')
+
+        con.commit()
+        cur.close()
+        con.close()
+
+        print('\nFornecedor atualizado com sucesso!')
+
+        return self.menu_login()
+
+class ListaFornecedor(Usuario):
+
+    def __init__(self):
+
+        self.lista_fornecedor()
+
+    def lista_fornecedor(self):
+
+        print('\nAbaixo a listagem de fornecedores cadastrados: ')
+
+        con = psycopg2.connect(
+            host='localhost',
+            dbname='empire',
+            user='postgres',
+            password='nicolasvx123'
+        )
+
+        cur = con.cursor()
+
         cur.execute("SELECT * FROM public.fornecedor")
         fornecedores = cur.fetchall()
-        cadastrado = False
 
-        for fornecedor in fornecedores:
-            if self.cnpj == fornecedor[3]:
-                cadastrado = True
+        if fornecedores:
+            for fornecedor in fornecedores:
+                print(fornecedor[1])
+            exit()
 
-        while cadastrado:
-
-            print(
-                '\nFornecedor já cadastrado! O que deseja fazer a seguir?\n'
-                '\n[1] - Atualizar cadastro.'
-                '\n[2] - Deletar cadastro.'
-                '\n[3] - Voltar ao menu principal.'
-                '\n[4] - Sair.\n'
-            )
-
-            # arrumar essa parte depois
-
-        cur.execute("INSERT INTO public.fornecedor (nome, numero, cnpj, cep, uf, logradouro, complemento, bairro, localidade) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.nome, self.numero, self.cnpj, self.cep, self.dados['uf'], self.dados['logradouro'], self.dados['complemento'], self.dados['bairro'], self.dados['localidade']))
-        
-    def deleta_fornecedor(self):
-        pass
-
-    def atualiza_fornecedor(self):
-        pass
+        print('Nenhum fornecedor cadastrado!')

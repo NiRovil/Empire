@@ -23,12 +23,12 @@ class Usuario:
 
             resposta = input('--> ')
             if resposta == '1':
-                self.cadastro()
+                return self.cadastro()
             elif resposta == '2':
-                self.login()
+                return self.login()
             elif resposta == '3':
                 print('\nVolte sempre!\n')
-                exit()
+                return exit()
             print('\nOpção inválida!\n')
 
     def menu_login(self):
@@ -55,6 +55,7 @@ class Usuario:
                 from despesas import Despesas
                 return Despesas()
             if resposta == '4':
+                from fornecedor import Fornecedor
                 print(
                     '\nVocê está na aba de cadastro de Fornecedor'
                     '\nPara começar precisamos de algumas informações sobre o fornecedor:\n'
@@ -64,10 +65,9 @@ class Usuario:
                 numero = input('Numero de telefone: ')
                 cnpj = input('CNPJ: ')
                 cep = input('CEP: ')
-                from fornecedor import Fornecedor
                 return Fornecedor(nome, numero, cnpj, cep)
             if resposta == '5':
-                exit()
+                return exit()
             print('\nOpção inválida!\n')
 
     def cadastro(self):

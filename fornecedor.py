@@ -24,7 +24,7 @@ class Fornecedor(Usuario):
                 resposta = input('--> ')
 
                 if resposta == '0':
-                    self.menu_login()
+                    return self.menu_login()
                 
                 if self.valida_nome(resposta):
                     self.nome = resposta
@@ -45,7 +45,7 @@ class Fornecedor(Usuario):
                 resposta = input('--> ')
 
                 if resposta == '0':
-                    self.menu_login()
+                    return self.menu_login()
 
                 if self.valida_numero(resposta):
                     self.numero = resposta
@@ -53,7 +53,6 @@ class Fornecedor(Usuario):
 
         if self.valida_cnpj(cnpj):
             self.cnpj = cnpj
-            self.format_cnpj()
 
         else:
             print(
@@ -75,13 +74,27 @@ class Fornecedor(Usuario):
 
         if self.valida_cep(cep):
             self.cep = cep
-            self.format_cep()
-
-            if self.via_cep():
-                pass
+            self.dados = self.via_cep()
             
         else:
-            raise ValueError('CEP inválido!')
+            print(
+                '\nCEP inválido!'
+                '\nO CEP deve conter 8 dígitos e ser existente.'
+                '\nCEP incompleto ou com letras não é válido.'
+            )
+
+            while True:
+                print('\nDigite o CEP novamente! Ou volte ao menu principal precionando a tecla \'0\'.')
+                resposta = input('--> ')
+
+                if resposta == '0':
+                    self.menu_login()
+
+                if self.valida_cep(resposta):
+                    self.cep = resposta
+                    break      
+
+        self.confirma()
 
     def valida_nome(self, nome):
 
@@ -105,14 +118,8 @@ class Fornecedor(Usuario):
         numero_valido = "([0-9]{2})([0-9]{5})([0-9]{4})"
         numero = re.search(numero_valido, self.numero)
         numero_formatado = f"({numero.group(1)}){numero.group(2)}-{numero.group(3)}"
-        print('Confirma o numero a seguir? [s/n]')
-        print(numero_formatado)
-        resposta = input('--> ')
 
-        if resposta == 's':
-            return True
-        if resposta == 'n':
-            return False
+        return numero_formatado
     
     def valida_cnpj(self, cnpj):
         
@@ -133,19 +140,102 @@ class Fornecedor(Usuario):
 
     def format_cep(self):
 
-        print('Confirma o seu cep? [s/n]')
-        print(f'{self.cep[:5]}-{self.cep[5:]}')
-        return True
+        cep_formatado = f'{self.cep[:5]}-{self.cep[5:]}'
+        return cep_formatado        
 
     def via_cep(self):
 
         r = requests.get(f'https://viacep.com.br/ws/{self.cep}/json/')
         dados = r.json()
 
-        print(dados['cep'] + ', ' + dados['bairro'])
+        return dados
 
-        exit()
+    def confirma(self):
 
+        print(
+            '\nConfirma as informações? [s/n]'
+            f'\nNome: {self.nome}'
+            f'\nNumero: {self.format_numero()}'
+            f'\nCNPJ: {self.format_cnpj()}'
+            f'\nCEP: {self.format_cep()}'
+        )
+        resposta = input('--> ')
+
+        if resposta == 's':
+            self.cadastro_fornecedor()
+
+        elif resposta == 'n':
+
+            while True:
+                print(
+                    '\nQual item deseja alterar?'
+                    f'\n[1] - Nome. Atual {self.nome}.'
+                    f'\n[2] - Numero. Atual {self.format_numero()}.'
+                    f'\n[3] - CNPJ. Atual {self.format_cnpj()}.'
+                    f'\n[4] - CEP. Atual {self.format_cep()}.'
+                    '\n[5] - Voltar ao menu.'
+                    '\n[6] - Continuar.'
+                )
+                confirmacao = input('--> ')
+
+                if confirmacao == '1':
+
+                    while True:
+                        print('\nDigite o nome novamente:')
+                        resposta = input('--> ')
+
+                        if self.valida_nome(resposta):
+                            self.nome = resposta
+                            print('\nNome atualizado com sucesso!')
+                            break
+                        else:
+                            print('Nome inválido!')
+                
+                if confirmacao == '2':
+
+                    while True:
+                        print('\nDigite o numero novamente:')
+                        resposta = input('--> ')
+
+                        if self.valida_numero(resposta):
+                            self.numero = resposta
+                            print('\nNumero atualizado com sucesso!')
+                            break
+                        else:
+                            print('\nNumero inválido!')
+
+                if confirmacao == '3':
+
+                    while True:
+                        print('\nDigite o CNPJ novamente:')
+                        resposta = input('--> ')
+
+                        if self.valida_cnpj(resposta):
+                            self.cnpj = resposta
+                            print('\nCNPJ atualizado com sucesso!')
+                            break
+                        else:
+                            print('\nCNPJ inválido!')
+
+                if confirmacao == '4':
+
+                    while True:
+                        print('\nDigite o CEP novamente:')
+                        resposta = input('--> ')
+
+                        if self.valida_cep(resposta):
+                            self.cep = resposta
+                            print('\nCEP atualizado com sucesso!')
+                            break
+                        else:
+                            print('\nCEP inválido!')
+
+                if confirmacao == '5':
+                    self.menu_login()
+
+                if confirmacao == '6':
+                    self.cadastro_fornecedor()
+                    
     def cadastro_fornecedor(self):
 
         con = psycopg2.connect(
@@ -162,7 +252,7 @@ class Fornecedor(Usuario):
         cadastrado = False
 
         for fornecedor in fornecedores:
-            if self.nome == fornecedor[1]:
+            if self.cnpj == fornecedor[3]:
                 cadastrado = True
 
         while cadastrado:
@@ -177,7 +267,7 @@ class Fornecedor(Usuario):
 
             # arrumar essa parte depois
 
-        cur.execute("INSERT INTO public.fornecedor (nome, numero, cnpj, cep, uf, logradouro, complemento, bairro, localidade) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.nome, self.numero, self.cnpj, self.cep, self.uf, self.logradouro, self.complemento, self.bairro, self.localdade))
+        cur.execute("INSERT INTO public.fornecedor (nome, numero, cnpj, cep, uf, logradouro, complemento, bairro, localidade) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.nome, self.numero, self.cnpj, self.cep, self.dados['uf'], self.dados['logradouro'], self.dados['complemento'], self.dados['bairro'], self.dados['localidade']))
         
     def deleta_fornecedor(self):
         pass

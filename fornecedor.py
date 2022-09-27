@@ -306,7 +306,7 @@ class CadastroFornecedor(Usuario):
 
         cur = con.cursor()
 
-        cur.execute("DELETE * FROM public.fornecedor WHERE id = %s", (cadastro[0]))
+        cur.execute("DELETE FROM public.fornecedor WHERE id = %s", (cadastro[0],))
 
         con.commit()
         cur.close()

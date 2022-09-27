@@ -40,9 +40,8 @@ class Usuario:
             '\nQue função deseja fazer?\n'
             '\n[1] - Controle de estoque.'
             '\n[2] - Vendas.'
-            '\n[3] - Despesas.'
-            '\n[4] - Fornecedores.'
-            '\n[5] - Sair.\n'
+            '\n[3] - Fornecedores.'
+            '\n[4] - Sair.\n'
         )
 
         while True:
@@ -57,10 +56,6 @@ class Usuario:
                 return Vendas()
 
             if resposta == '3':
-                from despesas import Despesas
-                return Despesas()
-
-            if resposta == '4':
                 
                 while True:
                     print('Deseja cadastrar/atualizar/deletar fornecedor? [s/n]')
@@ -81,7 +76,7 @@ class Usuario:
                         from fornecedor import ListaFornecedor
                         return ListaFornecedor()
 
-            if resposta == '5':
+            if resposta == '4':
                 return exit()
 
             print('\nOpção inválida!\n')

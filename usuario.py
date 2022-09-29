@@ -1,61 +1,67 @@
 import psycopg2
+import PySimpleGUI as sg
 
 class Usuario:
 
-    def __init__(self, nome, senha):
+    def __init__(self):
 
-        self._nome = nome 
-        self._senha = senha
-
-        self.menu_inicial()
-
-    def menu_inicial(self):
-
-        print(
-            '\nBem vindo!\n'
-            '\nSelecione uma das opções a seguir:'
-            '\n[1] - Cadastrar-se'
-            '\n[2] - Login.'
-            '\n[3] - Sair.\n'
-        )
+        layout = [
+            [sg.Text('Nome de Usuário'), sg.InputText(key='usuario')],
+            [sg.Text('Senha'), sg.InputText(key='password', password_char='*')],
+            [sg.Button('Login'), sg.Button('Cadastro'), sg.Cancel()]
+        ]
+        window = sg.Window(title='Empire / Login - Cadastro', layout=layout)
 
         while True:
-            resposta = input('--> ')
+            event, values = window.read()
 
-            if resposta == '1':
-                return self.cadastro()
+            if event in ('Login', 'Cadastro', 'Cancel') and values['usuario'] == '' or values['password'] == '':
+                return self.__init__()
+            
+            elif event == 'Login' and values['usuario'] != '' and values['password'] != '':
+                self._nome = values['usuario']
+                self._senha = values['password']
+                window.close()
 
-            elif resposta == '2':
+                print(self._nome)
+                print(self._senha)
+
                 return self.login()
+            
+            elif event == 'Cadastro' and values['usuario'] != '' and values['password'] != '':
+                self._nome = values['usuario']
+                self._senha = values['password']
+                window.close()
 
-            elif resposta == '3':
-                print('\nVolte sempre!\n')
-                return exit()
-
-            print('\nOpção inválida!\n')
+                return self.cadastro()
+           
+            elif event == sg.WIN_CLOSED:
+                window.close()
+                exit()
 
     def menu_login(self):
 
-        print(
-            '\nQue função deseja fazer?\n'
-            '\n[1] - Controle de estoque.'
-            '\n[2] - Vendas.'
-            '\n[3] - Fornecedores.'
-            '\n[4] - Sair.\n'
-        )
+        layout = [
+            [sg.Button('Controle de Estoque')],
+            [sg.Button('Vendas')],
+            [sg.Button('Fornecedores')],
+            [sg.Button('Sair')]
+        ]
+
+        window = sg.Window(title='Empire / Menu', layout=layout)
 
         while True:
-            resposta = input('--> ')
+            event, values = window.read()
 
-            if resposta == '1':
+            if event == 'Controle de Estoque':
                 from estoque import Estoque
                 return Estoque()
 
-            if resposta == '2':
+            elif event == 'Vendas':
                 from vendas import Vendas
                 return Vendas()
 
-            if resposta == '3':
+            elif event == 'Fornecedores':
                 
                 while True:
                     print('Deseja cadastrar/atualizar/deletar fornecedor? [s/n]')
@@ -76,10 +82,12 @@ class Usuario:
                         from fornecedor import ListaFornecedor
                         return ListaFornecedor()
 
-            if resposta == '4':
+            elif event == 'Sair':
                 return exit()
-
-            print('\nOpção inválida!\n')
+            
+            elif event == sg.WIN_CLOSED:
+                window.close()
+                exit()
 
     def cadastro(self):
 
@@ -120,6 +128,9 @@ class Usuario:
 
     def login(self):
 
+        print('User ' + self._nome)
+        print('Senha ' + self._senha)
+
         con = psycopg2.connect(
             host='localhost',
             dbname='empire',
@@ -131,13 +142,39 @@ class Usuario:
         cur.execute("SELECT nome, senha FROM public.usuario WHERE nome=%s;", (self._nome,))
         user = cur.fetchone()
 
-        if self._nome == user[0] and self._senha == user[1]:
-            cur.close()
-            con.close()
-            print('\nUsuário logado com sucesso!\n')
-            return self.menu_login()
+        if user is not None:
+            if self._nome == user[0] and self._senha == user[1]:
+                layout = [
+                    [sg.Text('Usuário logado com sucesso!')],
+                    [sg.OK()]
+                ]
+
+                window = sg.Window('Empire', layout=layout)
+
+                while True:
+                    event, values = window.read()
+
+                    if event in ('OK'):
+                        cur.close()
+                        con.close()
+                        window.close()
+                        return self.menu_login()
 
         cur.close()
         con.close()
-        print('\nUsuário não encontrado, verifique o usuário e senha ou cadastre-se.\n')
-        self.menu_inicial()
+        layout = [
+            [sg.Text('Usuário não encontrado, verifique o usuário e senha ou cadastre-se!')],
+            [sg.OK(), sg.Button('Sair')]
+        ]
+
+        window = sg.Window('Empire / Erro', layout=layout)
+
+        while True:
+            event, values = window.read()
+            if event == 'OK':
+                window.close()
+                return self.__init__()
+
+            if event == 'Sair':
+                window.close()
+                exit()

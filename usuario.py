@@ -23,9 +23,6 @@ class Usuario:
                 self._senha = values['password']
                 window.close()
 
-                print(self._nome)
-                print(self._senha)
-
                 return self.login()
             
             elif event == 'Cadastro' and values['usuario'] != '' and values['password'] != '':
@@ -42,23 +39,26 @@ class Usuario:
     def menu_login(self):
 
         layout = [
+            [sg.Text('Selecione o que deseja fazer:')],
             [sg.Button('Controle de Estoque')],
             [sg.Button('Vendas')],
             [sg.Button('Fornecedores')],
             [sg.Button('Sair')]
         ]
 
-        window = sg.Window(title='Empire / Menu', layout=layout)
+        window = sg.Window(title='Empire / Menu Principal', layout=layout, size=(400,200))
 
         while True:
             event, values = window.read()
 
             if event == 'Controle de Estoque':
                 from estoque import Estoque
+                window.close()
                 return Estoque()
 
             elif event == 'Vendas':
                 from vendas import Vendas
+                window.close()
                 return Vendas()
 
             elif event == 'Fornecedores':
@@ -110,27 +110,48 @@ class Usuario:
             
         while cadastrado:
 
-            print('\nUsuário já existe! Deseja fazer o login? [s/n]')
-            resposta = input('--> ')
-            if resposta == 's':
-                self.login()
-            elif resposta == 'n':
-                self.menu_inicial()
-            print('\nOpção inválida!')
+            layout = [
+                [sg.Text('Usuário já cadastrado, deseja fazer login?')],
+                [sg.Button('Login'), sg.Button('Sair')]
+            ]
+            window = sg.Window('Empire / Cadastro', layout=layout)
+
+            while True:
+                event, values = window.read()
+
+                if event == 'Login':
+                    window.close()
+                    return self.login()
+                
+                elif event == 'Sair':
+                    window.close()
+                    exit()
 
         cur.execute("INSERT INTO public.usuario (nome,senha) VALUES (%s, %s)", (self._nome, self._senha))
         con.commit()        
         cur.close()
         con.close()
 
-        print('\nUsuário cadastrado com sucesso!\n')
-        return self.menu_inicial()
+        layout = [
+            [sg.Text('Usuário cadastrado com sucesso!')],
+            [sg.Button('Login'), sg.Button('Sair')]
+        ]
+
+        window = sg.Window('Empire / Concluído', layout=layout)
+
+        while True:
+            event, values = window.read()
+
+            if event == 'Login':
+                window.close()
+                return self.menu_login()
+
+            if event == 'Sair':
+                window.close()
+                exit()
 
     def login(self):
-
-        print('User ' + self._nome)
-        print('Senha ' + self._senha)
-
+        
         con = psycopg2.connect(
             host='localhost',
             dbname='empire',

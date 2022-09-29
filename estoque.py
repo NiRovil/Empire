@@ -1,4 +1,5 @@
 import psycopg2
+import PySimpleGUI as sg
 
 from usuario import Usuario
 
@@ -6,34 +7,71 @@ class Estoque(Usuario):
 
     def __init__(self):
 
-        print('\nVocê está na aba de controle de estoque!')
-        print('Qual funcionalidade deseja?')
-        print('[1] - Entrada de estoque.')
-        print('[2] - Saida de estoque.')
-        print('[3] - Menu.')
-        print('[4] - Sair.')
-        resposta = input('--> ')
+        layout = [
+            [sg.Text('Qual funcionalidade deseja?')],
+            [sg.Button('Entrada de Estoque', key='1')],
+            [sg.Button('Saída de Estoque', key='2')],
+            [sg.Button('Menu', key='3')],
+            [sg.Button('Sair', key='4')]
+        ]
 
-        if resposta == '1':
-            self.entrada_estoque()
+        window = sg.Window('Empire / Controle de Estoque', layout=layout, size=(400,200))
+        
+        while True:
+            event, values = window.read()
 
-        elif resposta == '2':
-            self.saida_estoque()
+            if event == '1':
+                window.close()
+                self.entrada_estoque()
 
-        elif resposta == '3':
-            self.menu_login()
+            elif event == '2':
+                window.close()
+                self.saida_estoque()
 
-        elif resposta == '4':
-            exit()
+            elif event == '3':
+                window.close()
+                self.menu_login()
 
-        else:
-            print('\nOpção inválida!')
-            self.__init__()
+            elif event == '4':
+                exit()
+
+            elif event == sg.WIN_CLOSED:
+                window.close()
+                self.menu_login()
 
     def entrada_estoque(self):
 
-        print('Você está na aba de entrada de estoque!\n')
-        nome_produto = input('Digite o nome do produto: ')
+        layout_pesquisa = [
+            [sg.Text('Digite o nome do produto'), sg.Input(key='nome_produto')],
+            [sg.Button('Confirma', key='1'), sg.Button('Menu', key='2')],
+        ]
+        window_pesquisa = sg.Window('Empire / Entrada de Estoque', layout=layout_pesquisa)
+
+        event_pesquisa, values_pesquisa = window_pesquisa.read()
+
+        if event_pesquisa == '1':
+            if values_pesquisa['nome_produto'] == '':
+                window = sg.Window('Empire / Entrada de Estoque', layout=[[sg.ErrorElement('O produto não pode estar em branco!')], [sg.Button('Voltar', key='1')]])
+                event, values = window.read()
+
+                if event == '1':
+                    window.close()
+                    return self.entrada_estoque()
+                
+                elif event == sg.WIN_CLOSED:
+                    window.close()
+                    return self.entrada_estoque()
+            
+            nome_produto = values_pesquisa['nome_produto']
+            window_pesquisa.close()
+
+        elif event_pesquisa == '2':
+            window_pesquisa.close()
+            return Estoque()
+
+        elif event_pesquisa == sg.WIN_CLOSED:
+            window_pesquisa.close()
+            return Estoque()
 
         con = psycopg2.connect(
             host='localhost',
@@ -81,19 +119,45 @@ class Estoque(Usuario):
                     print('Obrigado por usar o sistema!')
                     return exit()
 
-        print('Produto não encontrado no banco de dados, cadastre!\n')
+        layout_cadastro = [
+            [sg.Text('Produto não encontrado, cadastre!')],
+            [sg.Text('Digite a quantidade: '), sg.Input(key='quantidade')],
+            [sg.Text('Digite o valor de compra: '), sg.Input(key='valor_de_compra')],
+            [sg.Text('Digite o valor de venda: '), sg.Input(key='valor_de_venda')],
+            [sg.Button('Confirmar', key='1'), sg.Button('Cancelar', key='2')]
+        ]
 
-        quantidade = input('Digite a quantidade: ')
-        valor_de_compra = input('Digite o valor de compra: ')
-        valor_de_venda = input('Digite o valor de venda: ')
+        window_cadastro = sg.Window('Empire / Entrada de Estoque', layout=layout_cadastro)
 
-        cur.execute("INSERT INTO public.estoque (nome_produto, quantidade, valor_de_compra, valor_de_venda) VALUES (%s, %s, %s, %s)", (nome_produto, quantidade, valor_de_compra, valor_de_venda))
-        con.commit()
-        cur.close()
-        con.close()
+        event_cadastro, values_cadastro = window_cadastro.read()
 
-        print('\nProduto cadastrado com sucesso!\n')
-        return Estoque()
+        if event_cadastro == '1':
+
+            window_cadastro.close()
+
+            window_confirma = sg.Window('Empire / Confirmação', layout=[[sg.Text('Produto cadastrado com sucesso!')], [sg.Button('Voltar', key='1')]])
+            event_confirma, values_confirma = window_confirma.read()
+
+            if event_confirma == '1':
+                window_confirma.close()
+                return Estoque()
+            
+            elif event_confirma == sg.WIN_CLOSED:
+                window_confirma.close()
+                return Estoque()
+
+            cur.execute("INSERT INTO public.estoque (nome_produto, quantidade, valor_de_compra, valor_de_venda) VALUES (%s, %s, %s, %s)", (values_pesquisa['nome_produto'], values_cadastro['quantidade'], values_cadastro['valor_de_compra'], values_cadastro['valor_de_venda']))
+            con.commit()
+            cur.close()
+            con.close()
+
+            print('\nProduto cadastrado com sucesso!\n')
+            return Estoque()
+
+        if event_cadastro == '2':
+
+            window_cadastro.close()
+            return Estoque()
 
     def saida_estoque(self):
 

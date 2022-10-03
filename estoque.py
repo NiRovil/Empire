@@ -160,9 +160,15 @@ class Estoque(Usuario):
             return Estoque()
 
     def saida_estoque(self):
+        
+        layout_pesquisa = [
+            [sg.Text('Digite o nome do produto', sg.Input(key='nome_produto'))],
+            [sg.Button('Confirma', key='1'), sg.Button('Menu', key='2')]
+        ]
 
-        print('Você está na aba de saída estoque!\n')
-        nome_produto = input('Digite o nome do produto: ')
+        window_pesquisa = sg.Window('Empire / Saida de Estoque', layout=layout_pesquisa)
+
+        event_pesquisa, values_pesquisa = window_pesquisa.read()
 
         con = psycopg2.connect(
             host='localhost',
@@ -177,13 +183,19 @@ class Estoque(Usuario):
         cadastrado = False
 
         for produto in produtos:
-            if produto[1] == nome_produto:
+            if produto[1] == event_pesquisa['nome_produto']:
                 cadastrado = True
 
         if cadastrado:
-            resposta = input('Deseja deletar o item da base de dados? [s/n] ')
+            layout = [
+                [sg.Text('Deseja deletar o produto selecionado?')],
+                [sg.Button('Confirma', key='s'), sg.Button('Cancela', key='n')]
+            ]
+            window = sg.Window('Empire / Confirmação', layout=layout)
 
-            if resposta == 's':
+            event, values = window.read()
+
+            if event == 's':
                 con = psycopg2.connect(
                     host='localhost',
                     dbname='empire',
@@ -192,31 +204,70 @@ class Estoque(Usuario):
                 )
 
                 cur = con.cursor()
-                cur.execute("DELETE FROM public.estoque WHERE nome_produto=%s", (nome_produto,))
+                cur.execute("DELETE FROM public.estoque WHERE nome_produto=%s", (values['nome_produto'],))
                 con.commit()
                 cur.close()
                 con.close()
 
-                print('Produto deletado com sucesso!')
+                layout_confirma = [
+                    [sg.Text('Produto deletado com sucesso!')],
+                    [sg.Button('Retornar ao Menu', key='return')]
+                ]
+
+                window_confirma = sg.Window('Empire / Confirmação', layout=layout_confirma)
+
+                event_confirma, values_confirma = window_confirma.read()
+
+                if event_confirma == 'return':
+                    window.close()
+                    window_pesquisa.close()
+                    window_confirma.close()
+                    return Estoque()
                 
-                return Estoque()
-
-            elif resposta == 'n':
-                print('Operação cancelada. O que deseja fazer a seguir?\n')
-                print('[1] - Voltar ao menu de estoque.')
-                print('[2] - Sair.')
-                resposta = input('--> ')
-
-                if resposta == '1':
+                elif event_confirma == sg.WIN_CLOSED:
+                    window.close()
+                    window_pesquisa.close()
                     return Estoque()
 
-                elif resposta == '2':
-                    print('Obrigado por usar o sistema!')
-                    return exit()
-                
-        resposta = input('Produto não encontrado no banco de dados, deseja cadastrar? [s/n] ')
-        if resposta == 's':
-            return Estoque.entrada_estoque(self)
+            elif event == 'n':
+                layout_cancela = [
+                    [sg.Text('Operação cancelada com sucesso!')],
+                    [sg.Button('Retornar ao Menu', key='return')]
+                ]
 
-        elif resposta == 'n':
+                window_cancela = sg.Window('Empire / Cancelar', layout=layout_cancela)
+
+                event_cancela, values_cancela = window_cancela.read()
+
+                if event_cancela == 'return':
+                    window.close()
+                    window_pesquisa.close()
+                    window_cancela.close()
+                    return Estoque()
+
+                elif event_cancela == sg.WIN_CLOSED:
+                    window.close()
+                    window_pesquisa.close()
+                    return Estoque()
+            
+            elif event == sg.WIN_CLOSED:
+                window_pesquisa.close()
+                return Estoque()
+                
+        layout_n_encontrado = [
+            [sg.Text('Produto não encontrado na base de dados')],
+            [sg.Button('Retornar ao Menu', key='s')]
+        ]
+        
+        window_n_encontrado = sg.Window('Empire / Não Encontrado', layout=layout_n_encontrado)
+
+        event_n_encontrado, values_n_encontrado = window_n_encontrado.read()
+
+        if event_n_encontrado == 's':
+            window_pesquisa.close()
+            window_n_encontrado.close()
+            return Estoque()
+
+        elif event_n_encontrado == sg.WIN_CLOSED:
+            window_pesquisa.close()
             return Estoque()

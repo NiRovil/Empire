@@ -139,26 +139,23 @@ class Estoque(Usuario):
 
         if event_cadastro == '1':
 
-            window_cadastro.close()
-
             window_confirma = sg.Window('Empire / Confirmação', layout=[[sg.Text('Produto cadastrado com sucesso!')], [sg.Button('Voltar', key='1')]])
             event_confirma, values_confirma = window_confirma.read()
-
-            if event_confirma == '1':
-                window_confirma.close()
-                return Estoque()
-            
-            elif event_confirma == sg.WIN_CLOSED:
-                window_confirma.close()
-                return Estoque()
 
             cur.execute("INSERT INTO public.estoque (nome_produto, quantidade, valor_de_compra, valor_de_venda) VALUES (%s, %s, %s, %s)", (values_pesquisa['nome_produto'], values_cadastro['quantidade'], values_cadastro['valor_de_compra'], values_cadastro['valor_de_venda']))
             con.commit()
             cur.close()
             con.close()
 
-            print('\nProduto cadastrado com sucesso!\n')
-            return Estoque()
+            if event_confirma == '1':
+                window_cadastro.close()
+                window_confirma.close()
+                return Estoque()
+            
+            elif event_confirma == sg.WIN_CLOSED:
+                window_cadastro.close()
+                window_confirma.close()
+                return Estoque()
 
         if event_cadastro == '2':
 

@@ -1,4 +1,5 @@
 import psycopg2
+import PySimpleGUI as sg
 
 from datetime import datetime
 from usuario import Usuario
@@ -6,8 +7,6 @@ from usuario import Usuario
 class Vendas(Usuario):
 
     def __init__(self):
-
-        print('\nVocê está na aba de vendas!')
         self.venda()
         
     def venda(self):
@@ -27,11 +26,19 @@ class Vendas(Usuario):
         respostas = []
 
         if produtos:
-            print('Quais produtos deseja vender? Precione \'c\' para finalizar a seleção.')
+
+            layout_pesquisa = [
+                [sg.Text('Quais produtos deseja vender?'), sg.Input(key='nome_produto')],
+                [sg.Button('Adicionar', key='add'), sg.Button('Desfazer', key='rmv')],
+                [sg.Button('Menu', key=''), sg.Button('Sair', key='')],
+            ]
+
+            layout_produtos = []
 
             for produto in produtos:
-                print(f'[{produto[0]}] - {produto[1]}')
+                layout_produtos.append([sg.Text(f'{produto[0]} - {produto[1]}')])
 
+            sg.Window('Empire / TESTE', layout=layout_produtos).read()
 
             while True:
                 item = [x[0] for x in produtos]

@@ -28,18 +28,24 @@ class Vendas(Usuario):
         if produtos:
 
             layout_pesquisa = [
-                [sg.Text('Quais produtos deseja vender?'), sg.Input(key='nome_produto')],
-                [sg.Button('Adicionar', key='add'), sg.Button('Desfazer', key='rmv')],
-                [sg.Button('Menu', key=''), sg.Button('Sair', key='')],
+                [sg.Text('Quais produtos deseja adicionar ao carrinho?'), sg.Input(key='nome_produto')],   
             ]
-
-            layout_produtos = []
-
+            
             for produto in produtos:
-                layout_produtos.append([sg.Text(f'{produto[0]} - {produto[1]}')])
+                layout_pesquisa.append([sg.Button(f'{produto[0]} - {produto[1]}', key=f'{produto[0]}')])
+            
+            layout_pesquisa.append([[sg.Button('Adicionar', key='add'), sg.Button('Desfazer', key='rmv')], [sg.Button('Menu', key=''), sg.Button('Sair', key='')]])
+            
+            window_pesquisa = sg.Window('Empire / TESTE', layout=layout_pesquisa)
 
-            sg.Window('Empire / TESTE', layout=layout_produtos).read()
+            event_pesquisa, values_pesquisa = window_pesquisa.read()
+            
+            if event_pesquisa in produtos:
+                print()
+                respostas.append(event_pesquisa)
 
+            print(respostas)
+                
             while True:
                 item = [x[0] for x in produtos]
                 resposta = input('--> ')

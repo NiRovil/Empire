@@ -1,5 +1,5 @@
 import unittest
-from fornecedor import Fornecedor
+from fornecedor import CadastroFornecedor
 
 # 'Nicolas', 41999999999, 49810576000103, 69903239
 
@@ -9,12 +9,12 @@ class TestFornecedorNome(unittest.TestCase):
 
     def setUp(self):
 
-        self.nome = Fornecedor.valida_nome(self, 'Nicolas')
-        self.nome_composto = Fornecedor.valida_nome(self, 'Nicolas Vilela')
-        self.nome_vazio = Fornecedor.valida_nome(self, '')
-        self.nome_com_digitos = Fornecedor.valida_nome(self, 'Nicolas123')
-        self.nome_com_somente_digitos = Fornecedor.valida_nome(self, '123')
-        self.nome_com_caracteres_especiais = Fornecedor.valida_nome(self, 'N!colas')
+        self.nome = CadastroFornecedor.valida_nome(self, 'Nicolas')
+        self.nome_composto = CadastroFornecedor.valida_nome(self, 'Nicolas Vilela')
+        self.nome_vazio = CadastroFornecedor.valida_nome(self, '')
+        self.nome_com_digitos = CadastroFornecedor.valida_nome(self, 'Nicolas123')
+        self.nome_com_somente_digitos = CadastroFornecedor.valida_nome(self, '123')
+        self.nome_com_caracteres_especiais = CadastroFornecedor.valida_nome(self, 'N!colas')
 
     def test_nome(self):
 
@@ -50,10 +50,10 @@ class TestFornecedorNumero(unittest.TestCase):
 
     def setUp(self):
 
-        self.numero = Fornecedor.valida_numero(self, '41999999999')
-        self.numero_vazio = Fornecedor.valida_numero(self, '')
-        self.numero_com_letra = Fornecedor.valida_numero(self, '4199999999a9')
-        self.numero_a_menos = Fornecedor.valida_numero(self, '4199999999')
+        self.numero = CadastroFornecedor.valida_numero(self, '41999999999')
+        self.numero_vazio = CadastroFornecedor.valida_numero(self, '')
+        self.numero_com_letra = CadastroFornecedor.valida_numero(self, '4199999999a9')
+        self.numero_a_menos = CadastroFornecedor.valida_numero(self, '4199999999')
 
     def test_numero(self):
 
@@ -80,9 +80,9 @@ class TestFornecedorCnpj(unittest.TestCase):
 
     def setUp(self):
 
-        self.cnpj = Fornecedor.valida_cnpj(self, '49810576000103')
-        self.cnpj_vazio = Fornecedor.valida_cnpj(self, '')
-        self.cnpj_com_letras = Fornecedor.valida_cnpj(self, '498105760001a3')
+        self.cnpj = CadastroFornecedor.valida_cnpj(self, '49810576000103')
+        self.cnpj_vazio = CadastroFornecedor.valida_cnpj(self, '')
+        self.cnpj_com_letras = CadastroFornecedor.valida_cnpj(self, '498105760001a3')
 
     def test_cnpj(self):
 
@@ -104,9 +104,9 @@ class TestFornecedorCep(unittest.TestCase):
 
     def setUp(self):
 
-        self.cep = Fornecedor.valida_cep(self, '69903239')
-        self.cep_vazio = Fornecedor.valida_cep(self, '')
-        self.cep_com_numero_diferente = Fornecedor.valida_cep(self, '6990323')
+        self.cep = CadastroFornecedor.valida_cep(self, '69903239')
+        self.cep_vazio = CadastroFornecedor.valida_cep(self, '')
+        self.cep_com_numero_diferente = CadastroFornecedor.valida_cep(self, '6990323')
 
     def test_cep(self):
 

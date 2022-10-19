@@ -27,42 +27,50 @@ class Vendas(Usuario):
 
         if produtos:
 
-            layout_pesquisa = [
-                [sg.Text('Quais produtos deseja adicionar ao carrinho?'), sg.Input(key='nome_produto')],   
-            ]
+            layout_pesquisa = [[sg.Text('Quais produtos deseja adicionar ao carrinho?')],]
             
             for produto in produtos:
-                layout_pesquisa.append([sg.Button(f'{produto[0]} - {produto[1]}', key=f'{produto[0]}')])
+                layout_pesquisa.append([sg.Button(f'{produto[0]} - {produto[1]}', key=f'{produto[1]}')])
             
-            layout_pesquisa.append([[sg.Button('Adicionar', key='add'), sg.Button('Desfazer', key='rmv')], [sg.Button('Menu', key=''), sg.Button('Sair', key='')]])
+            layout_pesquisa.append([[sg.Button('Cesta', key='cart'), sg.Button('Finalizar', key='end')], [sg.Button('Menu', key=''), sg.Button('Sair', key='')]])
             
             window_pesquisa = sg.Window('Empire / TESTE', layout=layout_pesquisa)
 
-            event_pesquisa, values_pesquisa = window_pesquisa.read()
-            
-            if event_pesquisa in produtos:
-                print()
-                respostas.append(event_pesquisa)
-
-            print(respostas)
-                
             while True:
-                item = [x[0] for x in produtos]
-                resposta = input('--> ')
+                event_pesquisa, values_pesquisa = window_pesquisa.read()
 
-                if resposta == 'c':
-                    break
+                print(event_pesquisa)
+                print(values_pesquisa)
 
-                while resposta in respostas:
-                    print('Produto já adicionado a lista. Tente outro item ou finalize a operação!')
-                    resposta = input('--> ')
+                if respostas and event_pesquisa in respostas:
+                    layout_erro = [
+                        [sg.Text('Produto já adicionado, selecione outro ou finalize a operação!')],
+                        [sg.Button('Voltar', key='back')]
+                    ]
 
-                if resposta not in str(item):
-                    print('Produto não existe!')
-                    return self.venda()
+                    window_erro = sg.Window('Empire / Erro', layout=layout_erro)
+
+                    event_erro, values_erro = window_erro.read()
+
+                    if event_erro == 'back':
+                        window_erro.close()
                 
-                respostas.append(resposta)
-        
+                elif event_pesquisa == 'cart':
+                    if respostas and str(event_pesquisa) == 'cart':
+                        print(respostas)
+                        layout_cart = []
+                        for item in respostas:
+                            print(item)
+                            layout_cart.append([sg.Text(f'{produto}')])
+                        sg.Window('Empire / Carrinho', layout=layout_cart).read()
+
+                    return False
+                               
+                else:
+                    for produto in produtos:
+                        if event_pesquisa == produto[1]:
+                            respostas.append(event_pesquisa)       
+
         else:
             print('Nenhum produto no estoque!')
             print('O que deseja fazer a seguir?\n')

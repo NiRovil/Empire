@@ -66,11 +66,9 @@ class Vendas(Usuario):
                 # Mostra o atual estado do carrinho de compras.
                 elif event_pesquisa == 'cart':
                     if respostas and str(event_pesquisa) == 'cart':
-                        print(respostas)
                         layout_cart = [[sg.Text('Produtos adicionados:')]]
                         for item in respostas:
-                            print(item)
-                            layout_cart.append([sg.Text(f'{item}')])
+                            layout_cart.append([sg.Text(f'{item} {respostas[item]}')])
                         window = sg.Window('Empire / Carrinho', layout=layout_cart)
                         event, values = window.read()
 
@@ -91,30 +89,38 @@ class Vendas(Usuario):
                     for produto in produtos:
                         if event_pesquisa == produto[1]:
                             layout = [
-                                [sg.Text('Selecione a quantidade: '), sg.InputText(key='q')]
+                                [sg.Text('Selecione a quantidade: '), sg.InputText(key='q')],
+                                [sg.Button('Adicionar'), sg.Cancel()],
                             ]
 
-                            sg.Window('Empire / Quantidade', layout=layout).read()
-                            respostas[event_pesquisa] = produto[2]
-                            print(respostas)      
+                            window = sg.Window('Empire / Quantidade', layout=layout)
 
-        # Se não houver produto, uma mensagem é exibida.
-        else:
-            print('Nenhum produto no estoque!')
-            print('O que deseja fazer a seguir?\n')
-            print('[1] - Voltar ao menu.')
-            print('[2] - Sair.')
-            
-            while True:
-                resposta = input('--> ')
+                            event, values = window.read()
 
-                if resposta == '1':
-                    self.menu_login()
+                            if event in (sg.WIN_CLOSED, 'Cancel'):
+                                window.close()
+                            
+                            elif event in ('Adicionar', 'Cancel') and values['q'] == '':
+                                window.close()
+                            
+                            elif event == 'Adicionar' and values['q'] != '':
+                                try:
+                                    value = int(values['q'])
+                                    respostas[produto[1]] = value
+                                    window.close()
 
-                elif resposta == '2':
-                    exit()
+                                except:
+                                    layout = [
+                                        [sg.Text('O conteúdo da seleção não pode ser textual.')],
+                                        [sg.Button('Retornar')],
+                                    ]
 
-                print('Resposta inválida')
+                                    window = sg.Window('Empire / Error', layout=layout)
+
+                                    event, values = window.read()
+
+                                    if event in ('Retornar', sg.WIN_CLOSED):
+                                        window.close()
         
         if respostas:
 

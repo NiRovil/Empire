@@ -84,6 +84,13 @@ class Vendas(Usuario):
                         if event == sg.WIN_CLOSED:
                             window.close()
 
+                elif event_pesquisa == 'end':
+                    if respostas and str(event_pesquisa) == 'end':
+                        cur = con.cursor()
+                        layout_cart = [[sg.Text('Venda finalizada!')]]
+
+                        
+                        
                 # Adiciona um item ao carrinho.          
                 else:
                     for produto in produtos:
@@ -106,7 +113,18 @@ class Vendas(Usuario):
                             elif event == 'Adicionar' and values['q'] != '':
                                 try:
                                     value = int(values['q'])
-                                    respostas[produto[1]] = value
+                                    cur.execute("SELECT * FROM public.estoque WHERE id=%s", (produto[0],))
+                                    pesquisa = cur.fetchall()
+
+                                    for item in pesquisa:
+                                        if item[2] < value:
+                                            print(pesquisa)
+                                            print('estoque abaixo do necessário')
+                                        
+                                        else:
+                                            respostas[produto[1]] = value
+                                            print('estoque suficiente')
+
                                     window.close()
 
                                 except:
